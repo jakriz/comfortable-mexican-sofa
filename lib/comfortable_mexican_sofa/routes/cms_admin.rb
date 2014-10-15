@@ -32,6 +32,8 @@ class ActionDispatch::Routing::Mapper
               end
             end
             resources :categories
+
+            put 'positions/reorder', :to => 'positions#reorder'
           end
         end
       end

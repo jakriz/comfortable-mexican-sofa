@@ -20,12 +20,13 @@ $ ->
 window.CMS =
   current_path:           window.location.pathname
   code_mirror_instances:  []
-  
+
   init: ->
     CMS.slugify()
     CMS.wysiwyg()
     CMS.codemirror()
     CMS.sortable_list()
+    CMS.sortable_list_with_positions()
     CMS.timepicker()
     CMS.page_blocks()
     CMS.mirrors()
@@ -47,7 +48,7 @@ window.CMS.slugify = ->
     str = str.replace(chars_to_replace_with_delimiter, '-')
     chars_to_remove = new RegExp('[^a-zA-Z0-9 -]', 'g')
     str = str.replace(chars_to_remove, '').replace(/\s+/g, '-').toLowerCase()
-    
+
   $('input[data-slugify=true]').bind 'keyup.cms', ->
     $('input[data-slug=true]').val(slugify($(this).val()))
 
@@ -86,6 +87,13 @@ window.CMS.sortable_list = ->
     axis:   'y'
     update: ->
       $.post("#{CMS.current_path}/reorder", "_method=put&#{$(this).sortable('serialize')}")
+
+window.CMS.sortable_list_with_positions = ->
+  $('.sortable-positions').sortable
+    handle: 'div.dragger'
+    axis:   'y'
+    update: ->
+      $.post($('body').data('reorder-path'), "_method=put&model_name=#{$(this).data('model-name')}&#{$(this).sortable('serialize')}")
 
 
 window.CMS.timepicker = ->
@@ -129,7 +137,7 @@ window.CMS.page_update_publish = ->
   widget = $('#form-save')
   $('input', widget).prop('checked', $('input#page_is_published').is(':checked'))
   $('button', widget).html($('input[name=commit]').val())
-  
+
   $('input', widget).click ->
     $('input#page_is_published').prop('checked', $(this).is(':checked'))
   $('input#page_is_published').click ->
@@ -150,11 +158,11 @@ window.CMS.categories = ->
 window.CMS.uploader = ->
   form    = $('.file-uploader form')
   iframe  = $('iframe#file-upload-frame')
-  
+
   $('input[type=file]', form).change -> form.submit()
-    
+
   iframe.load -> upload_loaded()
-  
+
   upload_loaded = ->
     i = iframe[0]
     d = if i.contentDocument
@@ -163,7 +171,7 @@ window.CMS.uploader = ->
       i.contentWindow.document
     else
       i.document
-    
+
     if d.body.innerHTML
       raw_string  = d.body.innerHTML
       json_string = raw_string.match(/\{(.|\n)*\}/)[0]

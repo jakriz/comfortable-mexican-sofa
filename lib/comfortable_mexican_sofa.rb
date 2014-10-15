@@ -26,6 +26,7 @@ require_relative 'comfortable_mexican_sofa/extensions/cms_manageable'
 require_relative 'comfortable_mexican_sofa/extensions/has_revisions'
 require_relative 'comfortable_mexican_sofa/extensions/is_mirrored'
 require_relative 'comfortable_mexican_sofa/extensions/is_categorized'
+require_relative 'comfortable_mexican_sofa/extensions/is_reorderable'
 
 Dir.glob(File.expand_path('comfortable_mexican_sofa/tags/*.rb', File.dirname(__FILE__))).each do |path|
   require_relative path
@@ -33,7 +34,7 @@ end
 
 module ComfortableMexicanSofa
   class << self
-    
+
     # Modify CMS configuration
     # Example:
     #   ComfortableMexicanSofa.configure do |config|
@@ -42,7 +43,7 @@ module ComfortableMexicanSofa
     def configure
       yield configuration
     end
-    
+
     # Accessor for ComfortableMexicanSofa::Configuration
     def configuration
       @configuration ||= Configuration.new
@@ -56,6 +57,6 @@ module ComfortableMexicanSofa
     def logger
       @logger ||= Rails.logger
     end
-    
+
   end
 end

@@ -1,4 +1,4 @@
-%body#comfy{:class => "c-#{params[:controller].slugify} a-#{params[:action].slugify}"}
+%body#comfy{:class => "c-#{params[:controller].slugify} a-#{params[:action].slugify}", :data => {:reorder_path => comfy_admin_cms_site_positions_reorder_path(@site)}}
 
   = render 'comfy/admin/cms/partials/body_before'
 
@@ -12,5 +12,5 @@
     .center-column
       = render 'layouts/comfy/admin/cms/center'
       = render 'layouts/comfy/admin/cms/footer'
-  
+
   = render 'layouts/comfy/admin/cms/footer_js'
