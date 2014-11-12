@@ -13,29 +13,30 @@
 #= require bootstrap
 #= require comfortable_mexican_sofa/lib/bootstrap-datetimepicker
 #= require comfortable_mexican_sofa/lib/diff
+#= require comfortable_mexican_sofa/cms/uploader
+#= require comfortable_mexican_sofa/cms/files
+
+window.CMS ||= {}
+
+window.CMS.current_path           = window.location.pathname
+window.CMS.code_mirror_instances  = [ ]
 
 $ ->
   CMS.init()
 
-window.CMS =
-  current_path:           window.location.pathname
-  code_mirror_instances:  []
-
-  init: ->
-    CMS.slugify()
-    CMS.wysiwyg()
-    CMS.codemirror()
-    CMS.sortable_list()
-    CMS.sortable_list_with_positions()
-    CMS.timepicker()
-    CMS.page_blocks()
-    CMS.mirrors()
-    CMS.page_update_preview()
-    CMS.page_update_publish()
-    CMS.categories()
-    CMS.uploader()
-    CMS.uploaded_files()
-
+window.CMS.init = ->
+  CMS.slugify()
+  CMS.wysiwyg()
+  CMS.codemirror()
+  CMS.sortable_list()
+  CMS.sortable_list_with_positions()
+  CMS.timepicker()
+  CMS.page_blocks()
+  CMS.mirrors()
+  CMS.page_update_preview()
+  CMS.page_update_publish()
+  CMS.categories()
+  CMS.files()
 
 window.CMS.slugify = ->
   slugify = (str) ->
@@ -56,12 +57,14 @@ window.CMS.slugify = ->
 window.CMS.wysiwyg = ->
   tinymce.init
     selector:         'textarea[data-cms-rich-text]'
-    plugins:          ['link', 'image', 'code']
+    plugins:          ['link', 'image', 'code', 'autoresize']
     toolbar:          'undo redo | styleselect | bullist numlist | link unlink image | code'
     menubar:          false
     statusbar:        false
     relative_urls:    false
     entity_encoding : 'raw'
+    autoresize_bottom_margin : 0
+
 
 window.CMS.codemirror = ->
   $('textarea[data-cms-cm-mode]').each (i, element) ->
@@ -78,8 +81,7 @@ window.CMS.codemirror = ->
   $('a[data-toggle="tab"]').on 'shown', ->
     for cm in CMS.code_mirror_instances
       cm.refresh()
-    return
-  return
+
 
 window.CMS.sortable_list = ->
   $('.sortable').sortable
@@ -121,6 +123,7 @@ window.CMS.page_blocks = ->
         CMS.codemirror()
         CMS.reinitialize_page_blocks() if CMS.reinitialize_page_blocks?
 
+
 window.CMS.mirrors = ->
   $('#mirrors select').change ->
     window.location = $(this).val()
@@ -155,32 +158,18 @@ window.CMS.categories = ->
     $('.done', '.categories-widget').toggle()
 
 
-window.CMS.uploader = ->
-  form    = $('.file-uploader form')
-  iframe  = $('iframe#file-upload-frame')
+# If we are inside an iframe remove the columns and just keep the center column content.
+# This is used for the files widget that opens in a modal window.
+window.CMS.set_iframe_layout = ->
+  in_iframe = ->
+    try
+      return window.self != window.top
+    catch e
+      return true
 
-  $('input[type=file]', form).change -> form.submit()
+  $('body').ready ->
+    if in_iframe()
+      $('body').addClass('in-iframe')
 
-  iframe.load -> upload_loaded()
-
-  upload_loaded = ->
-    i = iframe[0]
-    d = if i.contentDocument
-      i.contentDocument
-    else if i.contentWindow
-      i.contentWindow.document
-    else
-      i.document
-
-    if d.body.innerHTML
-      raw_string  = d.body.innerHTML
-      json_string = raw_string.match(/\{(.|\n)*\}/)[0]
-      json = $.parseJSON(json_string)
-      files = $('<div/>').html(json.view).hide()
-      $('.uploaded-files').prepend(files)
-      files.map ->
-        $(this).fadeIn()
-
-window.CMS.uploaded_files = ->
-  $('.uploaded-files').on 'click', 'input', ->
-    $(this).select()
+# Triggering this right away to prevent flicker
+window.CMS.set_iframe_layout()
